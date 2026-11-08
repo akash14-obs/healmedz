@@ -1,0 +1,12 @@
+spring:
+  web:
+    resources:
+      # Serves the built Angular app, so localhost needs no separate Node process.
+      static-locations: file:../web/dist/web/browser/
+
+app:
+  jwt-secret: local-development-only-secret-do-not-deploy-0123456789
+  demo-data: true
+  local-postgres:
+    port: 54329
+    data-directory: .local-data/postgres

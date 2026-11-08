@@ -1,0 +1,10 @@
+backend/target/
+backend/.local-data/
+web/node_modules/
+web/dist/
+web/.angular/
+.idea/
+.vscode/
+
+hs_err_pid*.log
+replay_pid*.log

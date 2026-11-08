@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: healthcare-platform
+  flyway:
+    locations: classpath:db/migration
+
+app:
+  # No default on purpose: a deployed environment must supply its own secret.
+  jwt-secret: ${APP_JWT_SECRET}
+  jwt-ttl-hours: 12
+  demo-data: false
