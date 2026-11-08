@@ -18,6 +18,15 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -q
 apt-get install -y -q openjdk-17-jre-headless postgresql caddy curl
 
+# Oracle Cloud's Ubuntu images block web traffic in iptables as well as in the cloud firewall.
+if command -v netfilter-persistent >/dev/null 2>&1; then
+  for port in 80 443; do
+    iptables -C INPUT -p tcp --dport "$port" -j ACCEPT 2>/dev/null \
+      || iptables -I INPUT 1 -p tcp --dport "$port" -j ACCEPT
+  done
+  netfilter-persistent save
+fi
+
 id healmedz >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin healmedz
 install -d -o healmedz -g healmedz /opt/healmedz
 install -d -m 755 /var/www/healmedz /etc/healmedz
