@@ -3,6 +3,7 @@ package com.healthplatform.config;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -10,22 +11,22 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- * Fills an empty local database with clearly fictional labs so every screen has something to show.
- * Runs only under the "local" profile. Names, addresses, phone numbers and prices are invented.
+ * Fills an empty database with clearly fictional labs so every screen has something to show.
+ * Runs only under the "local" and "demo" profiles. Names, addresses, phone numbers and prices are invented.
  */
 @Component
-@Profile("local")
+@Profile({"local", "demo"})
 class LocalDemoSeeder implements CommandLineRunner {
-
-    private static final String PASSWORD = "localdemo-123";
 
     private final JdbcClient db;
     private final PasswordEncoder passwords;
+    private final String password;
     private long adminId;
 
-    LocalDemoSeeder(JdbcClient db, PasswordEncoder passwords) {
+    LocalDemoSeeder(JdbcClient db, PasswordEncoder passwords, @Value("${app.demo-password}") String password) {
         this.db = db;
         this.passwords = passwords;
+        this.password = password;
     }
 
     @Override
@@ -69,7 +70,7 @@ class LocalDemoSeeder implements CommandLineRunner {
 
     private long user(String email, String role) {
         return db.sql("INSERT INTO app_user (email, password_hash, role) VALUES (?, ?, ?) RETURNING id")
-                .params(email, passwords.encode(PASSWORD), role).query(Long.class).single();
+                .params(email, passwords.encode(password), role).query(Long.class).single();
     }
 
     private long lab(String email, String name, String locality, String phone, boolean approved) {
@@ -77,7 +78,7 @@ class LocalDemoSeeder implements CommandLineRunner {
         long provider = db.sql("INSERT INTO provider (owner_user_id) VALUES (?) RETURNING id")
                 .param(owner).query(Long.class).single();
         String data = """
-                {"name":"%s","description":"Fictional lab used for local testing.","phone":"%s",
+                {"name":"%s","description":"Fictional lab for demonstration only.","phone":"%s",
                  "email":"%s","website":"","licenseNumber":"DEMO-ONLY","facilities":"Parking, Wheelchair access",
                  "branches":[{"name":"Main branch","address":"Demo address, %s","locality":"%s","city":"Tirupati",
                               "pincode":"517501","phone":"%s","workingHours":"Mon-Sat, 7:00 AM - 8:00 PM"}]}

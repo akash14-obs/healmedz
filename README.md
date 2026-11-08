@@ -34,6 +34,15 @@ To reset the local data, stop the app and delete `backend/.local-data/postgres`.
 
 Prices, service facts and lab profiles are stored in append-only `*_version` tables. A change adds a new `PENDING` row, and patients see only the latest `APPROVED` row in effect today. Database triggers reject any edit to a reviewed row, any change to submitted values, and any delete.
 
-## Before deploying
+## Deploying
 
-The `local` profile is for this machine only. A deployment needs a managed PostgreSQL database (`spring.datasource.*`), its own `APP_JWT_SECRET`, HTTPS, login rate limiting, a way to create admin accounts, and backups.
+The server runs the `demo` profile: fictional data with a visible banner, and random secrets created on the server in `/etc/healmedz/app.env`.
+
+1. Create an Ubuntu 24.04 server with a static IP, and open ports 80 and 443 in its firewall.
+2. Build the app: `npx ng build` in `web/`, then `mvn -DskipTests package` in `backend/`.
+3. From Git Bash, run `deploy/deploy.sh <server-ip> <path-to-key.pem>`.
+4. Point the `A` records for `healmedz.com` and `www` at the server. Caddy then gets the HTTPS certificate by itself.
+
+Repeat steps 2 and 3 for each update. Database backups run daily and stay on the server, so also turn on automatic server snapshots.
+
+Before showing real data, replace the `demo` profile and the seeded accounts with a proper way to create admins, and remove `X-Robots-Tag` from `deploy/Caddyfile`.

@@ -1,0 +1,26 @@
+healmedz.com {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Keeps invented demo prices out of search engines. Remove when real data goes live.
+		X-Robots-Tag "noindex"
+	}
+
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	handle {
+		root * /var/www/healmedz
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+www.healmedz.com {
+	redir https://healmedz.com{uri} permanent
+}

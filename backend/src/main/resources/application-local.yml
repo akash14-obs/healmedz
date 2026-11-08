@@ -7,6 +7,7 @@ spring:
 app:
   jwt-secret: local-development-only-secret-do-not-deploy-0123456789
   demo-data: true
+  demo-password: localdemo-123
   local-postgres:
     port: 54329
     data-directory: .local-data/postgres

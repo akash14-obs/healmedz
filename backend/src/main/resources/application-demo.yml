@@ -1,0 +1,8 @@
+# Public demo on a server: fictional data, real secrets. Caddy handles HTTPS in front of this app.
+server:
+  address: 127.0.0.1
+  forward-headers-strategy: native
+
+app:
+  demo-data: true
+  demo-password: ${APP_DEMO_PASSWORD}

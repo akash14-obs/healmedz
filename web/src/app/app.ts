@@ -8,7 +8,7 @@ import { Api, Auth } from './api';
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     @if (demo()) {
-      <div class="demo-bar">Local demo. Every lab and price shown here is invented.</div>
+      <div class="demo-bar">Demo only. Every lab and price shown here is invented.</div>
     }
     <header class="site-header">
       <div class="header-row">

@@ -2,12 +2,14 @@ package com.healthplatform.auth;
 
 import com.healthplatform.common.ApiException;
 import com.healthplatform.common.Audit;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
@@ -37,24 +39,35 @@ public class AuthController {
 
     record UserRow(long id, String email, String passwordHash, String role) {}
 
+    private static final int MAX_FAILED_LOGINS_PER_ACCOUNT = 5;
+    private static final int MAX_FAILED_LOGINS_PER_IP = 30;
+    private static final int MAX_REGISTRATIONS_PER_IP = 10;
+
     private final JdbcClient db;
     private final PasswordEncoder passwords;
     private final JwtEncoder jwt;
     private final Audit audit;
     private final Duration ttl;
+    private final AttemptLimiter limiter;
 
-    AuthController(JdbcClient db, PasswordEncoder passwords, JwtEncoder jwt, Audit audit,
+    AuthController(JdbcClient db, PasswordEncoder passwords, JwtEncoder jwt, Audit audit, AttemptLimiter limiter,
                    @Value("${app.jwt-ttl-hours}") long ttlHours) {
         this.db = db;
         this.passwords = passwords;
         this.jwt = jwt;
         this.audit = audit;
+        this.limiter = limiter;
         this.ttl = Duration.ofHours(ttlHours);
     }
 
     @PostMapping("/register-provider")
     @Transactional
-    public Session register(@Valid @RequestBody Credentials body) {
+    public Session register(@Valid @RequestBody Credentials body, HttpServletRequest request) {
+        String ipKey = "register:" + request.getRemoteAddr();
+        if (limiter.isBlocked(ipKey, MAX_REGISTRATIONS_PER_IP)) {
+            throw tooMany();
+        }
+        limiter.record(ipKey);
         long userId;
         try {
             userId = db.sql("INSERT INTO app_user (email, password_hash, role) VALUES (?, ?, 'PROVIDER') RETURNING id")
@@ -70,16 +83,29 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Session login(@RequestBody Credentials body) {
+    public Session login(@RequestBody Credentials body, HttpServletRequest request) {
+        String email = body.email() == null ? "" : body.email().trim();
+        String ipKey = "login:" + request.getRemoteAddr();
+        // Keyed on IP as well as email, so nobody can lock a real user out from another address.
+        String accountKey = ipKey + ":" + email.toLowerCase(Locale.ROOT);
+        if (limiter.isBlocked(ipKey, MAX_FAILED_LOGINS_PER_IP) || limiter.isBlocked(accountKey, MAX_FAILED_LOGINS_PER_ACCOUNT)) {
+            throw tooMany();
+        }
         Optional<UserRow> user = db.sql(
                         "SELECT id, email, password_hash, role FROM app_user WHERE lower(email) = lower(?)")
-                .param(body.email() == null ? "" : body.email().trim())
+                .param(email)
                 .query(UserRow.class).optional();
         if (user.isEmpty() || body.password() == null
                 || !passwords.matches(body.password(), user.get().passwordHash())) {
+            limiter.record(ipKey);
+            limiter.record(accountKey);
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Incorrect email or password.");
         }
         return session(user.get().id(), user.get().email(), user.get().role());
+    }
+
+    private static ApiException tooMany() {
+        return new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts. Please wait 15 minutes and try again.");
     }
 
     private Session session(long userId, String email, String role) {
