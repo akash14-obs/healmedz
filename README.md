@@ -1,4 +1,6 @@
-# Tirupati Lab Compare (working title)
+# HealMedz
+
+Live domain (not deployed yet): https://healmedz.com
 
 Patients compare diagnostic tests and prices. Labs submit their details, admins verify them, and only approved data is published.
 
