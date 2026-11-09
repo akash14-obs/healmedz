@@ -1,0 +1,16 @@
+# Render free plan, used together with the demo profile. The app serves the website itself here.
+server:
+  address: 0.0.0.0
+  port: ${PORT:8080}
+
+spring:
+  main:
+    lazy-initialization: true
+  web:
+    resources:
+      static-locations: file:web/
+  datasource:
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 0
+      idle-timeout: 60000

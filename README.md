@@ -34,7 +34,11 @@ To reset the local data, stop the app and delete `backend/.local-data/postgres`.
 
 Prices, service facts and lab profiles are stored in append-only `*_version` tables. A change adds a new `PENDING` row, and patients see only the latest `APPROVED` row in effect today. Database triggers reject any edit to a reviewed row, any change to submitted values, and any delete.
 
-## Deploying
+## Free hosting (Render and Neon)
+
+`render.yaml` and `Dockerfile` run the whole app as one free Render service, with its database on Neon. Use a direct (not pooled) Neon connection, because database migrations need one. The free service sleeps when idle, so the first visit afterwards is slow. It suits demos, not real patients.
+
+## Deploying to your own server
 
 The server runs the `demo` profile: fictional data with a visible banner, and random secrets created on the server in `/etc/healmedz/app.env`.
 

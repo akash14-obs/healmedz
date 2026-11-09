@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 /** Lets browser refreshes on Angular routes load the app when the backend serves it locally. */
 @Controller
-@Profile("local")
+@Profile({"local", "render"})
 class LocalWebAppController {
 
     @GetMapping({"/", "/search", "/diagnostics", "/hospitals", "/treatments", "/insurance", "/government-schemes",

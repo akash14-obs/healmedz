@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: healmedz
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    healthCheckPath: /api/public/meta
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: demo,render
+      - key: APP_JWT_SECRET
+        generateValue: true
+      - key: APP_DEMO_PASSWORD
+        generateValue: true
+      # Copied from Neon when the service is first created.
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
