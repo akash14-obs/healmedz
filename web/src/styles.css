@@ -175,6 +175,20 @@ label.check input { margin: 0; }
 .home-labs-cta { padding: 12px 26px; border-radius: 10px; background: var(--pine); color: #fff; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .home-labs-cta:hover { background: #082a26; }
 
+/* Booking */
+.result-actions { display: flex; align-items: center; gap: 8px; }
+.book-summary { display: flex; flex-direction: column; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; margin-top: 12px; }
+.consent { align-items: flex-start; font-size: 0.88rem; }
+.consent input { margin-top: 3px; }
+.ticket-state { display: inline-block; margin: 0 0 10px; padding: 2px 12px; border-radius: 99px; background: var(--marigold); color: #1f1500; font-size: 0.85rem; font-weight: 700; }
+.ticket-state.done { background: var(--accent-soft); color: var(--accent); }
+.ticket-label { margin: 0; font-size: 0.85rem; }
+.ticket-number { margin: 0 0 12px; font-size: 1.7rem; font-weight: 800; letter-spacing: 0.02em; }
+.ticket-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 14px 0 8px; padding-block: 12px; border-block: 1px solid var(--line); }
+.ticket-facts dd { font-size: 1.15rem; font-weight: 800; }
+.ticket-note { font-size: 0.84rem; }
+.ticket-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
 /* Results and browse */
 .results-title { margin: 14px 0 2px; font-size: clamp(1.5rem, 3.5vw, 2rem); }
 .results-title span { font-weight: 400; color: var(--muted); }
@@ -274,7 +288,7 @@ button.wide { justify-self: start; }
   .sb-what { grid-column: 1 / -1; }
   .sb-field:first-child { border-radius: 16px 16px 0 0; }
   .sb-where { border-right: 1px solid var(--line); }
-  .sb-submit { grid-column: 1 / -1; padding-block: 15px; border-radius: 0 0 16px 16px; }
+  .sb-submit, .sb--compact .sb-submit { grid-column: 1 / -1; padding-block: 15px; border-radius: 0 0 16px 16px; }
   .home-split { grid-template-columns: minmax(0, 1fr); }
   .home-steps ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .home-roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -284,7 +298,7 @@ button.wide { justify-self: start; }
   .result { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
   .result-price { text-align: right; }
   .result-facts { grid-column: 1; }
-  .result > .button { justify-self: end; }
+  .result-actions { grid-column: 1 / -1; }
   .grid-form { grid-template-columns: minmax(0, 1fr); }
   .sb { grid-template-columns: minmax(0, 1fr); }
   .sb-where { border-right: 0; }

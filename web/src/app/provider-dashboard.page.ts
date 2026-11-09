@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import {
   Api, CatalogItem, Dashboard, emptyBranch, errorText, InrPipe, OfferingRequest, ProfileData, ProviderOffering, todayIso,
 } from './api';
+import { ProviderBookings } from './provider-bookings';
 
 const STATUS_TEXT: Record<string, string> = {
   PENDING: 'Awaiting verification',
@@ -21,7 +22,7 @@ function blankOffering(): OfferingRequest {
 
 @Component({
   selector: 'app-provider-dashboard-page',
-  imports: [FormsModule, DatePipe, InrPipe],
+  imports: [FormsModule, DatePipe, InrPipe, ProviderBookings],
   template: `
     <h1>My lab</h1>
     @if (message()) { <p class="notice ok" role="status">{{ message() }}</p> }
@@ -37,7 +38,10 @@ function blankOffering(): OfferingRequest {
     <div class="tabs" role="tablist">
       <button type="button" role="tab" [attr.aria-selected]="tab() === 'services'" (click)="tab.set('services')">Services and prices</button>
       <button type="button" role="tab" [attr.aria-selected]="tab() === 'profile'" (click)="tab.set('profile')">Profile</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'bookings'" (click)="tab.set('bookings')">Bookings</button>
     </div>
+
+    @if (tab() === 'bookings') { <app-provider-bookings /> }
 
     @if (tab() === 'services') {
       <section class="panel">
@@ -145,7 +149,7 @@ function blankOffering(): OfferingRequest {
 export class ProviderDashboardPage {
   private api = inject(Api);
 
-  protected tab = signal<'services' | 'profile'>('services');
+  protected tab = signal<'services' | 'profile' | 'bookings'>('services');
   protected dash = signal<Dashboard | null>(null);
   protected profile = signal<ProfileData | null>(null);
   protected offerings = signal<ProviderOffering[]>([]);

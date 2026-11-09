@@ -70,6 +70,29 @@ export interface SearchFilters { q: string; location: string; home: boolean; max
 
 export interface LocationOption { label: string; type: 'CITY' | 'AREA' | 'PINCODE'; }
 
+export interface BookableOffering {
+  offeringId: number; serviceName: string; providerName: string; price: number;
+  homeCollection: boolean; reportTatHours: number;
+}
+
+export interface BookingRequest {
+  offeringId: number; patientName: string; phone: string; visitDate: string; consent: boolean;
+}
+
+export type BookingState = 'WAITING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+
+export interface BookingStatus {
+  bookingNumber: string; serviceName: string; providerName: string; providerPhone: string; visitDate: string;
+  token: number; status: BookingState; price: number; peopleAhead: number; estimatedWaitMinutes: number;
+}
+
+export interface QueueEntry {
+  id: number; bookingNumber: string; token: number; patientName: string; patientPhone: string;
+  serviceName: string; status: BookingState;
+}
+
+export interface LabQueue { minutesPerPatient: number; bookings: QueueEntry[]; }
+
 const STORAGE_KEY = 'session';
 
 @Injectable({ providedIn: 'root' })
@@ -122,6 +145,15 @@ export class Api {
   myOfferings() { return this.http.get<ProviderOffering[]>('/api/provider/offerings'); }
   submitOffering(body: OfferingRequest) { return this.http.post<void>('/api/provider/offerings', body); }
   setActive(id: number, active: boolean) { return this.http.patch<void>(`/api/provider/offerings/${id}/active`, { active }); }
+
+  bookableOffering(id: number) { return this.http.get<BookableOffering>(`/api/public/offerings/${id}`); }
+  createBooking(body: BookingRequest) { return this.http.post<BookingStatus>('/api/public/bookings', body); }
+  lookupBooking(bookingNumber: string, phone: string) {
+    return this.http.post<BookingStatus>('/api/public/bookings/lookup', { bookingNumber, phone });
+  }
+  labQueue(date: string) { return this.http.get<LabQueue>('/api/provider/bookings', { params: { date } }); }
+  setBookingStatus(id: number, status: BookingState) { return this.http.patch<void>(`/api/provider/bookings/${id}/status`, { status }); }
+  saveQueueSettings(minutesPerPatient: number) { return this.http.put<void>('/api/provider/queue-settings', { minutesPerPatient }); }
 
   queue() { return this.http.get<Queue>('/api/admin/queue'); }
   review(kind: 'profiles' | 'offerings', id: number, decision: 'APPROVE' | 'REJECT', note: string) {

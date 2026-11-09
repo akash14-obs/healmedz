@@ -35,6 +35,7 @@ import { Api, Auth } from './api';
               <a [routerLink]="auth.home()">{{ s.role === 'ADMIN' ? 'Verification queue' : 'My lab' }}</a>
               <button class="link" type="button" (click)="signOut()">Sign out</button>
             } @else {
+              <a routerLink="/booking">Track Booking</a>
               <a routerLink="/login" [queryParams]="{ mode: 'register' }">For Providers</a>
               <a routerLink="/login">Login</a>
               <a class="button primary" routerLink="/login" [queryParams]="{ mode: 'register' }">Sign Up</a>

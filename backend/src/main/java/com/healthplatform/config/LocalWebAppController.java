@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 class LocalWebAppController {
 
     @GetMapping({"/", "/search", "/diagnostics", "/hospitals", "/treatments", "/insurance", "/government-schemes",
-            "/patient-rights", "/login", "/provider", "/admin", "/labs/{id}"})
+            "/patient-rights", "/login", "/provider", "/admin", "/labs/{id}", "/book/{id}", "/booking"})
     String app() {
         return "forward:/index.html";
     }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 /** Counts attempts per key in a fixed time window. In memory, which suits a single server. */
 @Component
-class AttemptLimiter {
+public class AttemptLimiter {
 
     private static final long WINDOW_MS = Duration.ofMinutes(15).toMillis();
     private static final int PURGE_ABOVE_KEYS = 50_000;
@@ -16,12 +16,12 @@ class AttemptLimiter {
 
     private final Map<String, Window> windows = new ConcurrentHashMap<>();
 
-    boolean isBlocked(String key, int limit) {
+    public boolean isBlocked(String key, int limit) {
         Window window = windows.get(key);
         return window != null && !expired(window, System.currentTimeMillis()) && window.count() >= limit;
     }
 
-    void record(String key) {
+    public void record(String key) {
         long now = System.currentTimeMillis();
         if (windows.size() > PURGE_ABOVE_KEYS) {
             windows.values().removeIf(w -> expired(w, now));

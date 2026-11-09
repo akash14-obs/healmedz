@@ -53,9 +53,12 @@ import { Api, errorText, HistoryEntry, InrPipe, ProviderDetail, SourcePipe, TatP
               <div><dt>Report</dt><dd>{{ o.reportTatHours | tat }}</dd></div>
               <div><dt>Home collection</dt><dd>{{ o.homeCollection ? 'Yes' : 'No' }}</dd></div>
             </dl>
-            <button class="link" type="button" [attr.aria-expanded]="openId() === o.offeringId" (click)="toggle(o.offeringId)">
-              {{ openId() === o.offeringId ? 'Hide history' : 'Price history' }}
-            </button>
+            <div class="result-actions">
+              <a class="button primary" [routerLink]="['/book', o.offeringId]">Book</a>
+              <button class="link" type="button" [attr.aria-expanded]="openId() === o.offeringId" (click)="toggle(o.offeringId)">
+                {{ openId() === o.offeringId ? 'Hide history' : 'Price history' }}
+              </button>
+            </div>
             <p class="provenance">
               <span class="seal">✓ Verified {{ o.verifiedAt | date: 'd MMM y' }}</span>
               {{ o.sourceType | source }} · Effective {{ o.effectiveFrom | date: 'd MMM y' }}
