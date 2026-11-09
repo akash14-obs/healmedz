@@ -176,6 +176,10 @@ label.check input { margin: 0; }
 .home-labs-cta:hover { background: #082a26; }
 
 /* Booking */
+.phone-field { display: flex; margin-top: 3px; }
+.phone-prefix { padding: 8px 10px; border: 1px solid #b9b3a3; border-right: 0; border-radius: 8px 0 0 8px; background: var(--accent-soft); color: var(--ink); font-size: 1rem; }
+.phone-field input { flex: 1; min-width: 0; margin: 0; border-radius: 0 8px 8px 0; }
+.signin-labs { margin-top: 12px; font-size: 0.9rem; }
 .result-actions { display: flex; align-items: center; gap: 8px; }
 .book-summary { display: flex; flex-direction: column; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; margin-top: 12px; }
 .consent { align-items: flex-start; font-size: 0.88rem; }

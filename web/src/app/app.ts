@@ -32,13 +32,18 @@ import { Api, Auth } from './api';
           </nav>
           <div class="header-actions">
             @if (auth.session(); as s) {
-              <a [routerLink]="auth.home()">{{ s.role === 'ADMIN' ? 'Verification queue' : 'My lab' }}</a>
+              @if (s.role === 'PATIENT') {
+                <a routerLink="/booking">Track Booking</a>
+                <span class="muted">{{ s.name }}</span>
+              } @else {
+                <a [routerLink]="auth.home()">{{ s.role === 'ADMIN' ? 'Verification queue' : 'My lab' }}</a>
+              }
               <button class="link" type="button" (click)="signOut()">Sign out</button>
             } @else {
               <a routerLink="/booking">Track Booking</a>
-              <a routerLink="/login" [queryParams]="{ mode: 'register' }">For Providers</a>
-              <a routerLink="/login">Login</a>
-              <a class="button primary" routerLink="/login" [queryParams]="{ mode: 'register' }">Sign Up</a>
+              <a routerLink="/login">For Providers</a>
+              <a routerLink="/signin">Login</a>
+              <a class="button primary" routerLink="/signin" [queryParams]="{ mode: 'register' }">Sign Up</a>
             }
           </div>
         </div>

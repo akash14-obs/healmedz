@@ -3,7 +3,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { Api, BookingState, BookingStatus, errorText, InrPipe } from './api';
+import { Api, BookingState, BookingStatus, errorText, InrPipe, isValidMobile } from './api';
+import { PhoneInput } from './phone-input';
 
 const STATE_TEXT: Record<BookingState, string> = {
   WAITING: 'Waiting',
@@ -14,7 +15,7 @@ const STATE_TEXT: Record<BookingState, string> = {
 
 @Component({
   selector: 'app-booking-page',
-  imports: [FormsModule, DatePipe, InrPipe],
+  imports: [FormsModule, DatePipe, InrPipe, PhoneInput],
   template: `
     @if (status(); as s) {
       <section class="panel narrow ticket">
@@ -47,7 +48,7 @@ const STATE_TEXT: Record<BookingState, string> = {
         <p class="muted">Enter your booking number and the mobile number you booked with.</p>
         <form (ngSubmit)="find()">
           <label>Booking number <input name="number" required autocomplete="off" placeholder="HM-XXXXXXXX" [(ngModel)]="number" /></label>
-          <label>Mobile number <input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" [(ngModel)]="phone" /></label>
+          <app-phone-input [(value)]="phone" />
           @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> }
           <button class="primary" type="submit" [disabled]="busy()">{{ busy() ? 'Finding…' : 'Find booking' }}</button>
         </form>
@@ -92,6 +93,10 @@ export class BookingPage {
   }
 
   protected find() {
+    if (!isValidMobile(this.phone())) {
+      this.error.set('Enter a valid 10-digit mobile number.');
+      return;
+    }
     this.load(this.number());
   }
 

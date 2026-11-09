@@ -12,8 +12,8 @@ import { Api, Auth, errorText, Session } from './api';
     <section class="panel narrow">
       <h1>{{ registering() ? 'List your lab' : 'Sign in' }}</h1>
       <p class="muted">
-        {{ registering() ? 'Accounts are for labs. Patients can search and compare without one. Add your services and prices, and our team will verify them before patients see them.'
-                         : 'For labs and verification staff. Patients do not need an account.' }}
+        {{ registering() ? 'Add your services and prices, and our team will verify them before patients see them.'
+                         : 'For labs and verification staff.' }}
       </p>
       <form (ngSubmit)="submit()">
         <label>Email <input name="email" type="email" required autocomplete="email" [(ngModel)]="email" /></label>

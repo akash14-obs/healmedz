@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { AdminPage } from './admin.page';
-import { roleGuard } from './api';
+import { patientGuard, roleGuard } from './api';
 import { BookPage } from './book.page';
 import { BookingPage } from './booking.page';
 import { ComingSoonPage, PLANNED_SECTIONS } from './coming-soon.page';
@@ -11,6 +11,7 @@ import { LoginPage } from './login.page';
 import { ProviderDashboardPage } from './provider-dashboard.page';
 import { ProviderDetailPage } from './provider-detail.page';
 import { SearchPage } from './search.page';
+import { SigninPage } from './signin.page';
 
 export const routes: Routes = [
   { path: '', component: HomePage, title: 'HealMedz: Compare healthcare options near you' },
@@ -23,7 +24,8 @@ export const routes: Routes = [
     title: `${section.title} | HealMedz`,
   })),
   { path: 'labs/:id', component: ProviderDetailPage, title: 'Lab details | HealMedz' },
-  { path: 'book/:id', component: BookPage, title: 'Book a test | HealMedz' },
+  { path: 'book/:id', component: BookPage, canActivate: [patientGuard], title: 'Book a test | HealMedz' },
+  { path: 'signin', component: SigninPage, title: 'Log in | HealMedz' },
   { path: 'booking', component: BookingPage, title: 'Your booking | HealMedz' },
   { path: 'login', component: LoginPage, title: 'Sign in | HealMedz' },
   { path: 'provider', component: ProviderDashboardPage, canActivate: [roleGuard('PROVIDER')], title: 'Lab dashboard | HealMedz' },

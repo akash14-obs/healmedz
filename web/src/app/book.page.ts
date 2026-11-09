@@ -2,7 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { Api, BookableOffering, errorText, InrPipe, TatPipe, todayIso } from './api';
+import { Api, Auth, BookableOffering, errorText, InrPipe, isValidMobile, TatPipe, todayIso } from './api';
+import { PhoneInput } from './phone-input';
 
 function isoDaysAhead(days: number) {
   const d = new Date();
@@ -12,7 +13,7 @@ function isoDaysAhead(days: number) {
 
 @Component({
   selector: 'app-book-page',
-  imports: [FormsModule, RouterLink, InrPipe, TatPipe],
+  imports: [FormsModule, RouterLink, InrPipe, TatPipe, PhoneInput],
   template: `
     <section class="panel narrow">
       <h1>Book this test</h1>
@@ -27,9 +28,7 @@ function isoDaysAhead(days: number) {
         </div>
         <form (ngSubmit)="submit()">
           <label>Patient name <input name="name" required maxlength="100" autocomplete="name" [(ngModel)]="name" /></label>
-          <label>Mobile number
-            <input name="phone" type="tel" required inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile" [(ngModel)]="phone" />
-          </label>
+          <app-phone-input [(value)]="phone" />
           <label>Visit date <input name="date" type="date" required [min]="minDate" [max]="maxDate" [(ngModel)]="date" /></label>
           <label class="check consent">
             <input name="consent" type="checkbox" [(ngModel)]="consent" />
@@ -50,11 +49,12 @@ function isoDaysAhead(days: number) {
 export class BookPage {
   private api = inject(Api);
   private router = inject(Router);
+  private account = inject(Auth).session();
 
   protected minDate = todayIso();
   protected maxDate = isoDaysAhead(30);
-  protected name = signal('');
-  protected phone = signal('');
+  protected name = signal(this.account?.name ?? '');
+  protected phone = signal(this.account?.phone ?? '');
   protected date = signal(todayIso());
   protected consent = signal(false);
   protected offering = signal<BookableOffering | null>(null);
@@ -74,6 +74,10 @@ export class BookPage {
   protected submit() {
     const offering = this.offering();
     if (!offering) return;
+    if (!isValidMobile(this.phone())) {
+      this.error.set('Enter a valid 10-digit mobile number.');
+      return;
+    }
     if (!this.consent()) {
       this.error.set('Please agree to share your details with the lab.');
       return;

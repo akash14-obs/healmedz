@@ -64,7 +64,9 @@ export interface PendingOffering {
 
 export interface Queue { profiles: PendingProfile[]; offerings: PendingOffering[]; }
 
-export interface Session { token: string; role: 'PROVIDER' | 'ADMIN'; email: string; }
+export interface Session {
+  token: string; role: 'PROVIDER' | 'ADMIN' | 'PATIENT'; email: string | null; name?: string | null; phone?: string | null;
+}
 
 export interface SearchFilters { q: string; location: string; home: boolean; max: number | null; sort: string; }
 
@@ -147,7 +149,11 @@ export class Api {
   setActive(id: number, active: boolean) { return this.http.patch<void>(`/api/provider/offerings/${id}/active`, { active }); }
 
   bookableOffering(id: number) { return this.http.get<BookableOffering>(`/api/public/offerings/${id}`); }
-  createBooking(body: BookingRequest) { return this.http.post<BookingStatus>('/api/public/bookings', body); }
+  createBooking(body: BookingRequest) { return this.http.post<BookingStatus>('/api/patient/bookings', body); }
+  registerPatient(name: string, phone: string, password: string) {
+    return this.http.post<Session>('/api/auth/register-patient', { name, phone, password });
+  }
+  loginPatient(phone: string, password: string) { return this.http.post<Session>('/api/auth/login-patient', { phone, password }); }
   lookupBooking(bookingNumber: string, phone: string) {
     return this.http.post<BookingStatus>('/api/public/bookings/lookup', { bookingNumber, phone });
   }
@@ -164,14 +170,19 @@ export class Api {
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(Auth);
   const router = inject(Router);
-  const privateCall = req.url.startsWith('/api/provider') || req.url.startsWith('/api/admin');
+  const patientCall = req.url.startsWith('/api/patient');
+  const privateCall = patientCall || req.url.startsWith('/api/provider') || req.url.startsWith('/api/admin');
   const token = auth.session()?.token;
   const request = privateCall && token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
   return next(request).pipe(
     catchError((err: HttpErrorResponse) => {
       if (privateCall && err.status === 401) {
         auth.clear();
-        router.navigate(['/login']);
+        if (patientCall) {
+          router.navigate(['/signin'], { queryParams: { returnUrl: router.url } });
+        } else {
+          router.navigate(['/login']);
+        }
       }
       return throwError(() => err);
     }),
@@ -183,6 +194,15 @@ export function roleGuard(role: Session['role']): CanActivateFn {
     const auth = inject(Auth);
     return auth.role() === role || inject(Router).createUrlTree(['/login']);
   };
+}
+
+/** Patients browse freely and only need an account to book. */
+export const patientGuard: CanActivateFn = (_route, state) => {
+  return inject(Auth).role() === 'PATIENT' || inject(Router).createUrlTree(['/signin'], { queryParams: { returnUrl: state.url } });
+};
+
+export function isValidMobile(digits: string): boolean {
+  return /^[6-9]\d{9}$/.test(digits);
 }
 
 export function errorText(err: unknown): string {

@@ -3,6 +3,7 @@ package com.healthplatform.booking;
 import com.healthplatform.auth.AttemptLimiter;
 import com.healthplatform.common.ApiException;
 import com.healthplatform.common.Audit;
+import com.healthplatform.common.Phones;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -95,9 +96,10 @@ public class BookingController {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "This test is no longer listed."));
     }
 
-    @PostMapping("/public/bookings")
+    @PostMapping("/patient/bookings")
     @Transactional
-    public BookingStatus create(@Valid @RequestBody BookingRequest body, HttpServletRequest request) {
+    public BookingStatus create(@AuthenticationPrincipal Jwt user, @Valid @RequestBody BookingRequest body,
+                                HttpServletRequest request) {
         String ipKey = "booking:" + request.getRemoteAddr();
         if (limiter.isBlocked(ipKey, MAX_BOOKINGS_PER_IP)) {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many bookings. Please wait 15 minutes and try again.");
@@ -105,7 +107,7 @@ public class BookingController {
         if (!body.consent()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Please agree to share your details with the lab.");
         }
-        String phone = normalizePhone(body.phone());
+        String phone = Phones.normalize(body.phone());
         LocalDate today = LocalDate.now(IST);
         if (body.visitDate().isBefore(today) || body.visitDate().isAfter(today.plusDays(MAX_DAYS_AHEAD))) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Choose a date within the next " + MAX_DAYS_AHEAD + " days.");
@@ -121,14 +123,15 @@ public class BookingController {
                 .query((rs, n) -> 0).list();
         String number = newBookingNumber();
         db.sql("""
-                INSERT INTO booking (booking_number, provider_id, offering_id, patient_name, patient_phone, visit_date,
-                                     token, price_at_booking, consent_at)
-                SELECT ?, po.provider_id, po.offering_id, ?, ?, ?,
+                INSERT INTO booking (booking_number, provider_id, offering_id, patient_user_id, patient_name,
+                                     patient_phone, visit_date, token, price_at_booking, consent_at)
+                SELECT ?, po.provider_id, po.offering_id, ?, ?, ?, ?,
                        (SELECT coalesce(max(b.token), 0) + 1 FROM booking b
                         WHERE b.provider_id = po.provider_id AND b.visit_date = ?),
                        coalesce(po.discounted_price, po.regular_price), now()
                 FROM published_offering po WHERE po.offering_id = ?""")
-                .params(number, body.patientName().trim(), phone, body.visitDate(), body.visitDate(), body.offeringId())
+                .params(number, userId(user), body.patientName().trim(), phone, body.visitDate(), body.visitDate(),
+                        body.offeringId())
                 .update();
         return find(number, phone).orElseThrow();
     }
@@ -140,7 +143,7 @@ public class BookingController {
             throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts. Please wait 15 minutes and try again.");
         }
         String number = body.bookingNumber().trim().toUpperCase();
-        return find(number, normalizePhone(body.phone())).orElseThrow(() -> {
+        return find(number, Phones.normalize(body.phone())).orElseThrow(() -> {
             limiter.record(ipKey);
             return new ApiException(HttpStatus.NOT_FOUND, "No booking matches that number and phone.");
         });
@@ -212,17 +215,6 @@ public class BookingController {
             number.append(NUMBER_ALPHABET.charAt(random.nextInt(NUMBER_ALPHABET.length())));
         }
         return number.toString();
-    }
-
-    private static String normalizePhone(String raw) {
-        String digits = raw.replaceAll("\\D", "");
-        if (digits.length() == 12 && digits.startsWith("91")) {
-            digits = digits.substring(2);
-        }
-        if (!digits.matches("[6-9]\\d{9}")) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Enter a valid 10-digit mobile number.");
-        }
-        return digits;
     }
 
     private static long userId(Jwt user) {
